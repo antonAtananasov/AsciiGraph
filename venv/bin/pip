@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/home/tonziss/Documents/Projects/ASCII Graph/venv/bin/python3" "$0" "$@"
-' '''
+#!/home/tonziss/Documents/Projects/AsciiGraph/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
