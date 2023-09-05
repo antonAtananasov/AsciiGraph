@@ -633,17 +633,44 @@ class AsciiPlotter:
             strMatrix = self.overlayStrMatrices([self.cartesianAxes(), strMatrix])
         return self.strMatrixToStr(strMatrix)
 
+<<<<<<< HEAD
     def ploarAxes(self, radii: (float) = (0.75,)):
         """ """
+=======
+    def ploarAxes(self,radii:(float)=(.75,)):
+        """
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        git a"""
+>>>>>>> 2282a45d868f52b7e33617ec5a901c68617103a0
         minBound = min(
             abs(self.bounds[0][1] - self.bounds[0][0]),
             abs(self.bounds[1][1] - self.bounds[1][0]),
         )
         print(minBound)
         strMatrix = self.cartesianEqsToStrMatrix(
+<<<<<<< HEAD
             [
                 f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii
             ]  # +[f'(y+x)^2(y-x)^2>{minBound*20}'],intersect=None,contourOnTop=True,system=True
+=======
+            [f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii]#+[f'(y+x)^2(y-x)^2>{minBound*20}'],intersect=None,contourOnTop=True,system=True
+>>>>>>> 2282a45d868f52b7e33617ec5a901c68617103a0
         )
 
         return strMatrix
