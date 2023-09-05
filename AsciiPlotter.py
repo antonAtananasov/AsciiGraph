@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from latex2python import tex2py
 
 
@@ -473,9 +474,9 @@ class AsciiPlotter:
         xAxis = self.compileCartesianEquation("y=0")[0]
         yAxis = self.compileCartesianEquation("x=0")[0]
         arrows = {
-            "<": (np.real(self.X())[0][1], 0),
+            "<": (np.real(self.X())[0][0], 0),
             ">": (self.bounds[0][1], 0),
-            "v": (0, np.real(self.Y())[-2][0]),
+            "v": (0, np.real(self.Y())[-1][0]),
             "^": (0, self.bounds[1][1]),
         }
         arrowsMatrix = self.newCanvasMatrix()
@@ -595,23 +596,35 @@ class AsciiPlotter:
             See overlayStrMatrices above
         """
         strMatrix = self.newCanvasMatrix()
+        xAxis = self.coordLine(self.canvasSize[0], self.bounds[0])
+        yAxis = self.coordLine(self.canvasSize[1], self.bounds[1])[::-1]
         for pos in positions:
-            pointStrMatrix = self.cartesianEqToStrMatrix(
-                [f"x={pos[0]}", f"y={pos[1]}"],
-                contourOnTop=True,
-                intersect=character,
-                drawAxes=False,
-                system=True,
-            )
-            strMatrix = self.overlayStrMatrices(
-                [strMatrix, pointStrMatrix], intersect=character
-            )
+        #     pointStrMatrix = self.cartesianEqToStrMatrix(
+        #         [f"x={pos[0]}", f"y={pos[1]}"],
+        #         contourOnTop=True,
+        #         intersect=character,
+        #         drawAxes=False,
+        #         system=True,
+        #     )
+        #     strMatrix = self.overlayStrMatrices(
+        #         [strMatrix, pointStrMatrix], intersect=character
+        #     )
+            if not (pos[0] >= xAxis[0] and pos[0] <= xAxis[-1]) or not (pos[1]<=yAxis[0] and pos[1] >= yAxis[-1]):
+                continue
+            xDistance = np.abs(np.real( xAxis) - pos[0])
+            xIndex = np.where(xDistance == xDistance.min())[0][-1]
+            yDistance = np.abs(np.real( yAxis) - pos[1])
+            yIndex = np.where(yDistance == yDistance.min())[0][-1]
+            strMatrix[yIndex][xIndex] = character
+            
+
         return strMatrix
 
     def plotCartesianAsciiPoints(
         self,
         positions: [(int, int)],
         character: str = "o",
+        drawAxes:bool=True
     ):
         """
         Description
@@ -623,6 +636,8 @@ class AsciiPlotter:
             See overlayStrMatrices above
         """
         strMatrix = self.cartesianPointsToStrMatrix(positions, character)
+        if drawAxes:
+            strMatrix = self.overlayStrMatrices([self.cartesianAxes(),strMatrix])
         return self.strMatrixToStr(strMatrix)
 
 
@@ -670,6 +685,11 @@ def test():
     for eq in eqs:
         print("|", tex2py(eq))
     print(plot)
+    pts = [(0,0),(4,6),(-2,3),(plotter.bounds[0][0]+3,plotter.bounds[1][0]+3),(random.randrange(plotter.bounds[0][0],plotter.bounds[0][1]),random.randrange(plotter.bounds[1][0],plotter.bounds[1][1]))]
+    chars=['O','A','B','C','R']
+    for i in range(len(pts)):
+        print(':',f'{chars[i]}{pts[i]}')
+    print(plotter.plotCartesianAsciiPoints(pts))
 
     # print(plotter.Y())
 
