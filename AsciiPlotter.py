@@ -571,20 +571,20 @@ class AsciiPlotter:
     def cartesianPointsToStrMatrix(
         self,
         positions: [(int, int)],
-        character: str = "o",
+        characters: [str] = ["o"],
     ):
         """
         Description
         -----------
-        Generates a strMatrix with a character corresponding to the given position on the coordinate plane.
+        Generates a strMatrix with a characters corresponding to the given position on the coordinate plane.
         Uses overlayStrMatrices(cartesianEqsToStrMatrix(...),cartesianEqsToStrMatrix(...))
 
         Parameters
         ----------
         positions: [(int,int)]
             The a list of the (x, y) tuples defining the positions of the points.
-        character:str
-            The character to be assigned to the corresponding position in the strMatrix
+        characters: [str]
+            The characters to be assigned to the corresponding position in the strMatrix. If len(characters) is smaller than len(positions), the chars start repeating from the start
 
         Returns
         -------
@@ -593,17 +593,10 @@ class AsciiPlotter:
         strMatrix = self.newCanvasMatrix()
         xAxis = self.coordLine(self.canvasSize[0], self.bounds[0])
         yAxis = self.coordLine(self.canvasSize[1], self.bounds[1])[::-1]
-        for pos in positions:
-            #     pointStrMatrix = self.cartesianEqsToStrMatrix(
-            #         [f"x={pos[0]}", f"y={pos[1]}"],
-            #         contourOnTop=True,
-            #         intersect=character,
-            #         drawAxes=False,
-            #         system=True,
-            #     )
-            #     strMatrix = self.overlayStrMatrices(
-            #         [strMatrix, pointStrMatrix], intersect=character
-            #     )
+        for i in np.arange(len(positions)):
+            pos = positions[i]
+            char = characters[i % len(characters)]
+
             if not (pos[0] >= xAxis[0] and pos[0] <= xAxis[-1]) or not (
                 pos[1] <= yAxis[0] and pos[1] >= yAxis[-1]
             ):
@@ -612,7 +605,7 @@ class AsciiPlotter:
             xIndex = np.where(xDistance == xDistance.min())[0][0]
             yDistance = np.abs(np.real(yAxis) - pos[1])
             yIndex = np.where(yDistance == yDistance.min())[0][-1]
-            strMatrix[yIndex][xIndex] = character
+            strMatrix[yIndex][xIndex] = char
 
         return strMatrix
 
@@ -639,7 +632,6 @@ class AsciiPlotter:
             abs(self.bounds[0][1] - self.bounds[0][0]),
             abs(self.bounds[1][1] - self.bounds[1][0]),
         )
-        print(minBound)
         strMatrix = self.cartesianEqsToStrMatrix(
             [
                 f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii
@@ -662,52 +654,52 @@ def test():
     print(f"y in range [{plotter.bounds[1][0]},{plotter.bounds[1][1]}]")
     print("")
 
-    eqs = [
-        "y^2+x^2<=10^2",
-        "y!=3x+3(3)",
-        "3sin(x/3)>=y",
-        r"\left(\left(\frac{x}{7}\right)^{2}+\left(\frac{y}{7}\right)^{2}-1\right)^{3}<\left(\frac{x}{7}\right)^{2}\left(\frac{y}{7}\right)^{3}",
-    ]
+    # eqs = [
+    #     "y^2+x^2<=10^2",
+    #     "y!=3x+3(3)",
+    #     "3sin(x/3)>=y",
+    #     r"\left(\left(\frac{x}{7}\right)^{2}+\left(\frac{y}{7}\right)^{2}-1\right)^{3}<\left(\frac{x}{7}\right)^{2}\left(\frac{y}{7}\right)^{3}",
+    # ]
 
-    # individual===============================================
-    for eq in eqs:
-        print("", tex2py(eq))
-        print(plotter.plotCartesianAsciiEquations([eq]))
+    # # individual===============================================
+    # for eq in eqs:
+    #     print("", tex2py(eq))
+    #     print(plotter.plotCartesianAsciiEquations([eq]))
 
-    # overlay===============================================
-    plot = plotter.plotCartesianAsciiEquations(
-        eqs, system=False, contourOnTop=False, intersect=None
-    )
-    for eq in eqs:
-        print("[", tex2py(eq))
-    print(plot)
+    # # overlay===============================================
+    # plot = plotter.plotCartesianAsciiEquations(
+    #     eqs, system=False, contourOnTop=False, intersect=None
+    # )
+    # for eq in eqs:
+    #     print("[", tex2py(eq))
+    # print(plot)
 
-    # overlay + contour + intersect===============================================
-    plot = plotter.plotCartesianAsciiEquations(eqs)
-    for eq in eqs:
-        print(":", tex2py(eq))
-    print(plot)
+    # # overlay + contour + intersect===============================================
+    # plot = plotter.plotCartesianAsciiEquations(eqs)
+    # for eq in eqs:
+    #     print(":", tex2py(eq))
+    # print(plot)
 
-    # system===============================================
-    plot = plotter.plotCartesianAsciiEquations(eqs, system=True)
-    for eq in eqs:
-        print("|", tex2py(eq))
-    print(plot)
-    # points===============================================
-    pts = [
-        (0, 0),
-        (4, 6),
-        (-2, 3),
-        (plotter.bounds[0][0] + 3, plotter.bounds[1][0] + 3),
-        (
-            random.randrange(plotter.bounds[0][0], plotter.bounds[0][1]),
-            random.randrange(plotter.bounds[1][0], plotter.bounds[1][1]),
-        ),
-    ]
-    chars = ["O", "A", "B", "C", "R"]
-    for i in range(len(pts)):
-        print(":", f"{chars[i]}{pts[i]}")
-    print(plotter.plotCartesianAsciiPoints(pts))
+    # # system===============================================
+    # plot = plotter.plotCartesianAsciiEquations(eqs, system=True)
+    # for eq in eqs:
+    #     print("|", tex2py(eq))
+    # print(plot)
+    # # points===============================================
+    # pts = [
+    #     (0, 0),
+    #     (4, 6),
+    #     (-2, 3),
+    #     (plotter.bounds[0][0] + 3, plotter.bounds[1][0] + 3),
+    #     (
+    #         random.randrange(plotter.bounds[0][0], plotter.bounds[0][1]),
+    #         random.randrange(plotter.bounds[1][0], plotter.bounds[1][1]),
+    #     ),
+    # ]
+    # chars = ["O", "A", "B", "C", "R"]
+    # for i in range(len(pts)):
+    #     print(":", f"{chars[i]}{pts[i]}")
+    # print(plotter.plotCartesianAsciiPoints(pts, chars))
     # polar=================================================
     print(plotter.strMatrixToStr(plotter.ploarAxes()))
 
