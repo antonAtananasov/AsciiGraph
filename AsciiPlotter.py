@@ -664,30 +664,34 @@ class AsciiPlotter:
         axesRadii=(0.75,),
     ) -> np.ndarray:
         """
-        Description
-        -----------
-        Magic
+                Description
+                -----------
+                Magic
 
-        Parameters
-        ----------
-        eqs: [str]
-            A list of text or LaTeX equations to be drawn on one polar coordinate plane
-        drawAxes: bool = True
-            Whether coordinate axes y and x and a circle at different radii should be drawn behind the equations
-        system: bool = False
-            Whether to only show the graph of points that satisfy all given equations.
-            If set to False, the equations will only be overlayed instead
-        intersect: str = None
-            See intersect from overlayStrMatrices above
-        contourOnTop=True
-            See contourOnTop from overlayStrMatrices above
-        axesRadii: (float,) = (.75,)
-            The radii of the circles that are part of the coordinate axes.
-            The range between 0 and 1 is mapped between 0 an the smaller bound of the coordinate plane
+                Parameters
+                ----------
+                eqs: [str]
+                    A list of text or LaTeX equations to be drawn on one polar coordinate plane
+                drawAxes: bool = True
+                    Whether coordinate axes y and x and a circle at different radii should be drawn behind the equations
+                system: bool = False
+                    Whether to only show the graph of points that satisfy all given equations.
+                    If set to False, the equations will only be overlayed instead
+                intersect: str = None
+                    See intersect from overlayStrMatrices above
+                contourOnTop=True
+                    See contourOnTop from overlayStrMatrices above
+                axesRadii: (float,) = (.75,)
+        <<<<<<< HEAD
+                    The radii of the circles that are part of the coordinate axes.
+                    The range between 0 and 1 is mapped between 0 an the smaller bound of the coordinate plane
+        =======
+                    The radii of the circles that are part of the coordinate axes
+        >>>>>>> dd1c673f9e73b77e4b9ce26b5781f757fbcead08
 
-        Returns
-        -------
-        See overlayStrMatrices above
+                Returns
+                -------
+                See overlayStrMatrices above
         """
 
         strMatrix = self.overlayStrMatrices(
