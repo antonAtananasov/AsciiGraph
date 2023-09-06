@@ -35,51 +35,49 @@ def split(txt: str, seps: [str]) -> [str]:
     return [i.strip() for i in txt.split(default_sep)]
 
 
-class bcolors:
-    CEND = "\33[0m"
+class ConsoleColors:  # the available console colors to use for coloring the string matrices
+    END = "\33[0m"
+    BOLD = "\33[1m"
+    ITALIC = "\33[3m"
+    URL = "\33[4m"
+    BLINK = "\33[5m"
+    BLINK2 = "\33[6m"
+    SELECTED = "\33[7m"
+    BLACK = "\33[30m"
+    RED = "\33[31m"
+    GREEN = "\33[32m"
+    YELLOW = "\33[33m"
+    BLUE = "\33[34m"
+    VIOLET = "\33[35m"
+    BEIGE = "\33[36m"
+    WHITE = "\33[37m"
+    GREY = "\33[90m"
 
-    CBOLD = "\33[1m"
-    CITALIC = "\33[3m"
-    CURL = "\33[4m"
-    CBLINK = "\33[5m"
-    CBLINK2 = "\33[6m"
-    CSELECTED = "\33[7m"
+    RED2 = "\33[91m"
+    GREEN2 = "\33[92m"
+    YELLOW2 = "\33[93m"
+    BLUE2 = "\33[94m"
+    VIOLET2 = "\33[95m"
+    BEIGE2 = "\33[96m"
+    WHITE2 = "\33[97m"
 
-    CBLACK = "\33[30m"
-    CRED = "\33[31m"
-    CGREEN = "\33[32m"
-    CYELLOW = "\33[33m"
-    CBLUE = "\33[34m"
-    CVIOLET = "\33[35m"
-    CBEIGE = "\33[36m"
-    CWHITE = "\33[37m"
-    CGREY = "\33[90m"
+    BLACKBG = "\33[40m"
+    REDBG = "\33[41m"
+    GREENBG = "\33[42m"
+    YELLOWBG = "\33[43m"
+    BLUEBG = "\33[44m"
+    VIOLETBG = "\33[45m"
+    BEIGEBG = "\33[46m"
+    WHITEBG = "\33[47m"
+    GREYBG = "\33[100m"
 
-    CBLACKBG = "\33[40m"
-    CREDBG = "\33[41m"
-    CGREENBG = "\33[42m"
-    CYELLOWBG = "\33[43m"
-    CBLUEBG = "\33[44m"
-    CVIOLETBG = "\33[45m"
-    CBEIGEBG = "\33[46m"
-    CWHITEBG = "\33[47m"
-
-    CRED2 = "\33[91m"
-    CGREEN2 = "\33[92m"
-    CYELLOW2 = "\33[93m"
-    CBLUE2 = "\33[94m"
-    CVIOLET2 = "\33[95m"
-    CBEIGE2 = "\33[96m"
-    CWHITE2 = "\33[97m"
-
-    CGREYBG = "\33[100m"
-    CREDBG2 = "\33[101m"
-    CGREENBG2 = "\33[102m"
-    CYELLOWBG2 = "\33[103m"
-    CBLUEBG2 = "\33[104m"
-    CVIOLETBG2 = "\33[105m"
-    CBEIGEBG2 = "\33[106m"
-    CWHITEBG2 = "\33[107m"
+    REDBG2 = "\33[101m"
+    GREENBG2 = "\33[102m"
+    YELLOWBG2 = "\33[103m"
+    BLUEBG2 = "\33[104m"
+    VIOLETBG2 = "\33[105m"
+    BEIGEBG2 = "\33[106m"
+    WHITEBG2 = "\33[107m"
 
 
 np.seterr(divide="ignore")  # remove div by zero because polar plots
@@ -256,8 +254,16 @@ class AsciiPlotter:
             "<": 0b1000000000000000,
             ">": 0b0000000000000001,
         }
+        self.colors = ConsoleColors
+        self.colorCodes = [
+            getattr(self.colors, attr)
+            for attr in dir(self.colors)
+            if not callable(getattr(self.colors, attr)) and not attr.startswith("__")
+        ]
 
-    def newCanvasMatrix(self, canvasSize: (int, int) = (-1, -1)) -> np.ndarray:
+    def newCanvasMatrix(
+        self, canvasSize: (int, int) = (-1, -1), character: str = " "
+    ) -> np.ndarray:
         """
         Description
         -----------
@@ -270,6 +276,8 @@ class AsciiPlotter:
             *See canvasSize in the class description above*
             Additionally, setting one or both of the integers
             to a negative number defaults it to the class's canvasSize.
+        character: str
+            The char to be used to fill the space
         Returns
         -------
         A np.ndarray of shape canvasSize, full of space strings (' ')
@@ -281,7 +289,7 @@ class AsciiPlotter:
             canvasSize[1] = self.canvasSize[1]
 
         canvasMatrix = np.zeros((canvasSize[1], canvasSize[0]), dtype=np.dtype("U13"))
-        canvasMatrix[canvasMatrix == ""] = " "
+        canvasMatrix[canvasMatrix == ""] = character
         return canvasMatrix
 
     def strToExpr(self, s: str) -> str:
@@ -389,6 +397,7 @@ class AsciiPlotter:
         self,
         plane: np.ndarray,
         charsetMask: int = 0b0111111111111110,
+        color: str = None,
     ) -> np.ndarray:
         """
         Description
@@ -402,7 +411,9 @@ class AsciiPlotter:
         charsetMask: int
             Default is equation. If specified, it uses the given mask to
             suppress unwanted features (marching square states) in the graph.
-
+        color: str = None
+            The color in which the plot of this equation is drawn in the
+            console (or in the string using ANSI color coding)
         Returns
         -------
         [[str,str,...],[str,str,...],...] a 2D array of characters that make up the ascii graph of the given plane.
@@ -417,6 +428,10 @@ class AsciiPlotter:
                 if charCandidate & charsetMask > 0:
                     char = self.charset[mux(charCandidate)]
                     canvasMatrix[i][j] = char
+
+        if color != None:
+            canvasMatrix = self.colorizeStrMatrix(color)
+
         return canvasMatrix
 
     def strMatrixToStr(self, strMatrix: np.ndarray) -> str:
@@ -467,14 +482,18 @@ class AsciiPlotter:
         newStrMatrix = self.newCanvasMatrix()
         for k in np.arange(len(strMatrices) - 1):
             strMatrix1, strMatrix2 = strMatrices[k : k + 2]
+            decolorizedStrMatrix1, decolorizedStrMatrix2 = self.decolorizeStrMatrix(
+                strMatrix1
+            ), self.decolorizeStrMatrix(strMatrix2)
+
             for i in np.arange(self.canvasSize[1]):
                 for j in np.arange(self.canvasSize[0]):
-                    if strMatrix2[i][j] == " ":
+                    if decolorizedStrMatrix2[i][j] == " ":
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
                         if intersect != None:
-                            if strMatrix1[i][j] in contourChars:
-                                if strMatrix2[i][j] in contourChars:
+                            if decolorizedStrMatrix1[i][j] in contourChars:
+                                if decolorizedStrMatrix2[i][j] in contourChars:
                                     newStrMatrix[i][j] = intersect
                                 else:
                                     newStrMatrix[i][j] = (
@@ -531,7 +550,9 @@ class AsciiPlotter:
         canvasMask = self.planeToBool(plane, mode)
         return currentMatrix, canvasMask
 
-    def cartesianAxes(self):
+    def cartesianAxes(self, color=None):  # defaults to grey
+        if color == None:
+            color = self.colors.GREY
         xAxis = self.compileCartesianEquation("y=0")[0]
         yAxis = self.compileCartesianEquation("x=0")[0]
         arrows = {
@@ -551,9 +572,11 @@ class AsciiPlotter:
         axesMatrix = self.overlayStrMatrices(
             [yAxis, xAxis], intersect="+", contourOnTop=False
         )
-        return self.overlayStrMatrices(
+        axesMatrix = self.overlayStrMatrices(
             [axesMatrix, arrowsMatrix], contourOnTop=False, intersect=False
         )
+        axesMatrix = self.colorizeStrMatrix(axesMatrix, color)
+        return axesMatrix
 
     def cartesianEqsToStrMatrix(
         self,
@@ -562,6 +585,7 @@ class AsciiPlotter:
         system: bool = False,
         intersect: str = "x",
         contourOnTop=True,
+        colors: [str] = [None],
     ) -> np.ndarray:
         """
         Description
@@ -581,7 +605,10 @@ class AsciiPlotter:
             See intersect from overlayStrMatrices above
         contourOnTop=True
             See contourOnTop from overlayStrMatrices above
-
+        colors: str = None
+            The array of colors in which the graphs of the equations is drawn in the
+            console (or in the string using ANSI color coding), ordered respectively.
+            If len(colors) < len(eqs), the colors start repeating from the start
         Returns
         -------
         See overlayStrMatrices above
@@ -590,16 +617,19 @@ class AsciiPlotter:
         boolMask = strMatrix == " "
         for i in np.arange(len(eqs)):
             eq = eqs[i]
+            color = colors[i % len(colors)]
             currentMatrix, currentMask = self.compileCartesianEquation(eq)
             if system:
                 boolMask &= currentMask
+                strMatrix = self.maskStrMatrix(strMatrix, currentMask)
+                currentMatrix = self.maskStrMatrix(currentMatrix, boolMask)
+            if color != None:
+                currentMatrix = self.colorizeStrMatrix(currentMatrix, color)
             strMatrix = self.overlayStrMatrices(
                 [strMatrix, currentMatrix],
                 intersect=intersect,
                 contourOnTop=contourOnTop,
             )
-
-        strMatrix = self.maskStrMatrix(strMatrix, boolMask)
         if drawAxes:
             strMatrix = self.overlayStrMatrices(
                 [self.cartesianAxes(), strMatrix],
@@ -616,6 +646,7 @@ class AsciiPlotter:
         system: bool = False,
         intersect: str = "x",
         contourOnTop=True,
+        colors=[None],
     ) -> str:
         """
         Description
@@ -627,15 +658,15 @@ class AsciiPlotter:
         str
         """
         plot = self.strMatrixToStr(
-            self.cartesianEqsToStrMatrix(eqs, drawAxes, system, intersect, contourOnTop)
+            self.cartesianEqsToStrMatrix(
+                eqs, drawAxes, system, intersect, contourOnTop, colors
+            )
         )
 
         return plot
 
     def cartesianPointsToStrMatrix(
-        self,
-        positions: [(int, int)],
-        characters: [str] = ["o"],
+        self, positions: [(int, int)], characters: [str] = ["o"], colors: [str] = [None]
     ):
         """
         Description
@@ -648,7 +679,10 @@ class AsciiPlotter:
             The a list of the (x, y) tuples defining the positions of the points.
         characters: [str]
             The characters to be assigned to the corresponding position in the strMatrix. If len(characters) is smaller than len(positions), the chars start repeating from the start
-
+        colors: str = None
+            The array of colors in which the graphs of the equations is drawn in the
+            console (or in the string using ANSI color coding), ordered respectively.
+            If len(colors) < len(eqs), the colors start repeating from the start
         Returns
         -------
             See overlayStrMatrices above
@@ -659,7 +693,7 @@ class AsciiPlotter:
         for i in np.arange(len(positions)):
             pos = positions[i]
             char = characters[i % len(characters)]
-
+            color = colors[i % len(colors)]
             if not (pos[0] >= xAxis[0] and pos[0] <= xAxis[-1]) or not (
                 pos[1] <= yAxis[0] and pos[1] >= yAxis[-1]
             ):
@@ -668,12 +702,20 @@ class AsciiPlotter:
             xIndex = np.where(xDistance == xDistance.min())[0][0]
             yDistance = np.abs(np.real(yAxis) - pos[1])
             yIndex = np.where(yDistance == yDistance.min())[0][-1]
+
+            if color != None:
+                char = color + char + self.colors.END
+
             strMatrix[yIndex][xIndex] = char
 
         return strMatrix
 
     def plotCartesianAsciiPoints(
-        self, positions: [(int, int)], character: str = "o", drawAxes: bool = True
+        self,
+        positions: [(int, int)],
+        character: str = "o",
+        drawAxes: bool = True,
+        colors: [str] = [None],
     ):
         """
         Description
@@ -684,21 +726,24 @@ class AsciiPlotter:
         -------
             See overlayStrMatrices above
         """
-        strMatrix = self.cartesianPointsToStrMatrix(positions, character)
+        strMatrix = self.cartesianPointsToStrMatrix(positions, character, colors=colors)
         if drawAxes:
             strMatrix = self.overlayStrMatrices([self.cartesianAxes(), strMatrix])
         return self.strMatrixToStr(strMatrix)
 
-    def polarAxes(self, radii: (float) = (0.75,)):
-        """ """
+    def polarAxes(self, radii: (float) = (0.75,), color=None):
+        if color == None:
+            color = self.colors.GREY
         minBound = min(
             abs(self.bounds[0][1] - self.bounds[0][0]),
             abs(self.bounds[1][1] - self.bounds[1][0]),
         )
         strMatrix = self.cartesianEqsToStrMatrix(
-            [
-                f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii
-            ]  # +[f'(y+x)^2(y-x)^2>{minBound*20}'],intersect=None,contourOnTop=True,system=True
+            [f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii],
+            intersect=None,
+            contourOnTop=False,
+            system=False,
+            colors=[color],
         )
         return strMatrix
 
@@ -710,6 +755,7 @@ class AsciiPlotter:
         intersect: str = None,
         contourOnTop=False,
         axesRadii=(0.75,),
+        colors: [str] = [None],
     ) -> np.ndarray:
         """
         Description
@@ -747,6 +793,7 @@ class AsciiPlotter:
                     system=system,
                     intersect=intersect,
                     contourOnTop=contourOnTop,
+                    colors=colors,
                 ),
             ],
             contourOnTop=False,
@@ -763,6 +810,7 @@ class AsciiPlotter:
         intersect: str = None,
         contourOnTop=True,
         axesRadii=(0.75,),
+        colors: [str] = [None],
     ) -> str:
         """
         Description
@@ -775,15 +823,19 @@ class AsciiPlotter:
         """
         plot = self.strMatrixToStr(
             self.polarEqsToStrMatrix(
-                eqs, drawAxes, system, intersect, contourOnTop, axesRadii=axesRadii
+                eqs,
+                drawAxes,
+                system,
+                intersect,
+                contourOnTop,
+                axesRadii=axesRadii,
+                colors=colors,
             )
         )
         return plot
 
     def polarPointsToStrMatrix(
-        self,
-        positions: [(int, int)],
-        characters: [str] = ["o"],
+        self, positions: [(int, int)], characters: [str] = ["o"], colors: [str] = [None]
     ):
         """
         Description
@@ -810,12 +862,16 @@ class AsciiPlotter:
         pointsNorm = np.hstack((xNorm, yNorm))
         points = np.ndarray.tolist(pointsNorm * r)
 
-        strMatrix = self.cartesianPointsToStrMatrix(points, characters)
+        strMatrix = self.cartesianPointsToStrMatrix(points, characters, colors=colors)
 
         return strMatrix
 
     def plotPolarAsciiPoints(
-        self, positions: [(int, int)], character: str = "o", drawAxes: bool = True
+        self,
+        positions: [(int, int)],
+        character: str = "o",
+        drawAxes: bool = True,
+        colors: [str] = [None],
     ):
         """
         Description
@@ -826,7 +882,22 @@ class AsciiPlotter:
         -------
             See overlayStrMatrices above
         """
-        strMatrix = self.polarPointsToStrMatrix(positions, character)
+        strMatrix = self.polarPointsToStrMatrix(positions, character, colors=colors)
         if drawAxes:
             strMatrix = self.overlayStrMatrices([self.polarAxes(), strMatrix])
         return self.strMatrixToStr(strMatrix)
+
+    def decolorizeStrMatrix(self, strMatrix):
+        for c in self.colorCodes:
+            hasColor = np.char.find(strMatrix, c).max() > -1
+            if hasColor:
+                strMatrix = np.char.replace(strMatrix, c, "")
+        return strMatrix
+
+    def colorizeStrMatrix(self, strMatrix: np.ndarray, color: str) -> np.ndarray:
+        strMatrix = self.decolorizeStrMatrix(strMatrix)
+        prefixMatrix = self.newCanvasMatrix(character=color)
+        suffixMatrix = self.newCanvasMatrix(character=self.colors.END)
+        strMatrix = np.char.add(prefixMatrix, strMatrix)
+        strMatrix = np.char.add(strMatrix, suffixMatrix)
+        return strMatrix
