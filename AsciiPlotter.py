@@ -35,6 +35,57 @@ def split(txt: str, seps: [str]) -> [str]:
     return [i.strip() for i in txt.split(default_sep)]
 
 
+class bcolors:
+    CEND = "\33[0m"
+
+    CBOLD = "\33[1m"
+    CITALIC = "\33[3m"
+    CURL = "\33[4m"
+    CBLINK = "\33[5m"
+    CBLINK2 = "\33[6m"
+    CSELECTED = "\33[7m"
+
+    CBLACK = "\33[30m"
+    CRED = "\33[31m"
+    CGREEN = "\33[32m"
+    CYELLOW = "\33[33m"
+    CBLUE = "\33[34m"
+    CVIOLET = "\33[35m"
+    CBEIGE = "\33[36m"
+    CWHITE = "\33[37m"
+    CGREY = "\33[90m"
+
+    CBLACKBG = "\33[40m"
+    CREDBG = "\33[41m"
+    CGREENBG = "\33[42m"
+    CYELLOWBG = "\33[43m"
+    CBLUEBG = "\33[44m"
+    CVIOLETBG = "\33[45m"
+    CBEIGEBG = "\33[46m"
+    CWHITEBG = "\33[47m"
+
+    CRED2 = "\33[91m"
+    CGREEN2 = "\33[92m"
+    CYELLOW2 = "\33[93m"
+    CBLUE2 = "\33[94m"
+    CVIOLET2 = "\33[95m"
+    CBEIGE2 = "\33[96m"
+    CWHITE2 = "\33[97m"
+
+    CGREYBG = "\33[100m"
+    CREDBG2 = "\33[101m"
+    CGREENBG2 = "\33[102m"
+    CYELLOWBG2 = "\33[103m"
+    CBLUEBG2 = "\33[104m"
+    CVIOLETBG2 = "\33[105m"
+    CBEIGEBG2 = "\33[106m"
+    CWHITEBG2 = "\33[107m"
+
+
+np.seterr(divide="ignore")  # remove div by zero because polar plots
+np.seterr(invalid="ignore")  # remove div by zero because polar plots
+
+
 class AsciiPlotter:
     def coordLine(self, size: int, bounds: (float, float)):
         """
@@ -155,7 +206,6 @@ class AsciiPlotter:
             "e": np.e,
             "pi": np.pi,
         }  # the list of available mathematical operations, constants, etc.
-
         self.functions.update({"x": self.X()})
         self.functions.update({"y": self.Y()})
         self.functions.update({"r": self.Radius()})
@@ -230,7 +280,7 @@ class AsciiPlotter:
         if canvasSize[1] <= 0:
             canvasSize[1] = self.canvasSize[1]
 
-        canvasMatrix = np.zeros((canvasSize[1], canvasSize[0]), str)
+        canvasMatrix = np.zeros((canvasSize[1], canvasSize[0]), dtype=np.dtype("U13"))
         canvasMatrix[canvasMatrix == ""] = " "
         return canvasMatrix
 
@@ -591,7 +641,6 @@ class AsciiPlotter:
         Description
         -----------
         Generates a strMatrix with a characters corresponding to the given position on the coordinate plane.
-        Uses overlayStrMatrices(cartesianEqsToStrMatrix(...),cartesianEqsToStrMatrix(...))
 
         Parameters
         ----------
@@ -640,7 +689,7 @@ class AsciiPlotter:
             strMatrix = self.overlayStrMatrices([self.cartesianAxes(), strMatrix])
         return self.strMatrixToStr(strMatrix)
 
-    def ploarAxes(self, radii: (float) = (0.75,)):
+    def polarAxes(self, radii: (float) = (0.75,)):
         """ """
         minBound = min(
             abs(self.bounds[0][1] - self.bounds[0][0]),
@@ -651,7 +700,6 @@ class AsciiPlotter:
                 f"x^2+y^2-{minBound/2*radius}^2=0" for radius in radii
             ]  # +[f'(y+x)^2(y-x)^2>{minBound*20}'],intersect=None,contourOnTop=True,system=True
         )
-
         return strMatrix
 
     def polarEqsToStrMatrix(
@@ -664,39 +712,35 @@ class AsciiPlotter:
         axesRadii=(0.75,),
     ) -> np.ndarray:
         """
-                Description
-                -----------
-                Magic
+        Description
+        -----------
+        Magic
 
-                Parameters
-                ----------
-                eqs: [str]
-                    A list of text or LaTeX equations to be drawn on one polar coordinate plane
-                drawAxes: bool = True
-                    Whether coordinate axes y and x and a circle at different radii should be drawn behind the equations
-                system: bool = False
-                    Whether to only show the graph of points that satisfy all given equations.
-                    If set to False, the equations will only be overlayed instead
-                intersect: str = None
-                    See intersect from overlayStrMatrices above
-                contourOnTop=True
-                    See contourOnTop from overlayStrMatrices above
-                axesRadii: (float,) = (.75,)
-        <<<<<<< HEAD
-                    The radii of the circles that are part of the coordinate axes.
-                    The range between 0 and 1 is mapped between 0 an the smaller bound of the coordinate plane
-        =======
-                    The radii of the circles that are part of the coordinate axes
-        >>>>>>> dd1c673f9e73b77e4b9ce26b5781f757fbcead08
+        Parameters
+        ----------
+        eqs: [str]
+            A list of text or LaTeX equations to be drawn on one polar coordinate plane
+        drawAxes: bool = True
+            Whether coordinate axes y and x and a circle at different radii should be drawn behind the equations
+        system: bool = False
+            Whether to only show the graph of points that satisfy all given equations.
+            If set to False, the equations will only be overlayed instead
+        intersect: str = None
+            See intersect from overlayStrMatrices above
+        contourOnTop=True
+            See contourOnTop from overlayStrMatrices above
+        axesRadii: (float,) = (.75,)
+            The radii of the circles that are part of the coordinate axes.
+            The range between 0 and 1 is mapped between 0 an the smaller bound of the coordinate plane
 
-                Returns
-                -------
-                See overlayStrMatrices above
+        Returns
+        -------
+        See overlayStrMatrices above
         """
 
         strMatrix = self.overlayStrMatrices(
             [
-                self.ploarAxes(axesRadii),
+                self.polarAxes(axesRadii),
                 self.cartesianEqsToStrMatrix(
                     eqs=eqs,
                     drawAxes=False,
@@ -736,85 +780,53 @@ class AsciiPlotter:
         )
         return plot
 
+    def polarPointsToStrMatrix(
+        self,
+        positions: [(int, int)],
+        characters: [str] = ["o"],
+    ):
+        """
+        Description
+        -----------
+        Generates a strMatrix with a characters corresponding to the given position on the polar coordinate plane.
 
-def test():
-    """
-    Description
-    -----------
-    Observe
-    """
-    plotter = AsciiPlotter()  # ((161, 81))  # (canvasSize=(9, 19))
+        Parameters
+        ----------
+        positions: [(int,int)]
+            The a list of the (radius, theta) tuples defining the positions of the points.
+            The angle is used in degrees.
+        characters: [str]
+            The characters to be assigned to the corresponding position in the strMatrix.
+            If len(characters) is smaller than len(positions), the chars start repeating from the start
 
-    print(f"ASCII rsolution {plotter.canvasSize[0]}x{plotter.canvasSize[1]}")
-    print(f"x in range [{plotter.bounds[0][0]},{plotter.bounds[0][1]}]")
-    print(f"y in range [{plotter.bounds[1][0]},{plotter.bounds[1][1]}]")
-    print("")
-    """
-    eqs = [
-        "y^2+x^2<=10^2",
-        "y!=3x+3(3)",
-        "3sin(x/3)>=y",
-        r"\left(\left(\frac{x}{7}\right)^{2}+\left(\frac{y}{7}\right)^{2}-1\right)^{3}<\left(\frac{x}{7}\right)^{2}\left(\frac{y}{7}\right)^{3}",
-    ]
+        Returns
+        -------
+            See overlayStrMatrices above
+        """
+        r, t = np.hsplit(np.array(positions), 2)
+        t = np.deg2rad(t)
+        xNorm = np.cos(t)
+        yNorm = np.sin(t)
+        pointsNorm = np.hstack((xNorm, yNorm))
+        points = np.ndarray.tolist(pointsNorm * r)
 
-    # individual===============================================
-    for eq in eqs:
-        print("", tex2py(eq))
-        print(plotter.plotCartesianAsciiEquations([eq]))
+        strMatrix = self.cartesianPointsToStrMatrix(points, characters)
 
-    # overlay===============================================
-    plot = plotter.plotCartesianAsciiEquations(
-        eqs, system=False, contourOnTop=False, intersect=None
-    )
-    for eq in eqs:
-        print("[", tex2py(eq))
-    print(plot)
+        return strMatrix
 
-    # overlay + contour + intersect===============================================
-    plot = plotter.plotCartesianAsciiEquations(eqs)
-    for eq in eqs:
-        print(":", tex2py(eq))
-    print(plot)
+    def plotPolarAsciiPoints(
+        self, positions: [(int, int)], character: str = "o", drawAxes: bool = True
+    ):
+        """
+        Description
+        -----------
+        See polarPointsToStrMatrix above
 
-    # system===============================================
-    plot = plotter.plotCartesianAsciiEquations(eqs, system=True)
-    for eq in eqs:
-        print("|", tex2py(eq))
-    print(plot)
-    # points===============================================
-    pts = [
-        (0, 0),
-        (4, 6),
-        (-2, 3),
-        (plotter.bounds[0][0] + 3, plotter.bounds[1][0] + 3),
-        (
-            random.randrange(plotter.bounds[0][0], plotter.bounds[0][1]),
-            random.randrange(plotter.bounds[1][0], plotter.bounds[1][1]),
-        ),
-    ]
-    chars = ["O", "A", "B", "C", "R"]
-    for i in range(len(pts)):
-        print(":", f"{chars[i]}{pts[i]}")
-    print(plotter.plotCartesianAsciiPoints(pts, chars))
-    """
-    # polar=================================================
-    # print(plotter.strMatrixToStr(plotter.ploarAxes()))
-    print(
-        plotter.plotPolarAsciiEquations(
-            [
-                r"r/6=\sin(1.2(\theta+0pi))^{2}+\cos(6(\theta+0pi))^{3}",
-                r"r/6=\sin(1.2(\theta+2pi))^{2}+\cos(6(\theta+2pi))^{3}",
-                r"r/6=\sin(1.2(\theta+4pi))^{2}+\cos(6(\theta+4pi))^{3}",
-                r"r/6=\sin(1.2(\theta+6pi))^{2}+\cos(6(\theta+6pi))^{3}",
-                r"r/6=\sin(1.2(\theta+8pi))^{2}+\cos(6(\theta+8pi))^{3}",
-                r"r/6=\sin(1.2(\theta+10pi))^{2}+\cos(6(\theta+10pi))^{3}",
-                r"r/4<1+2\sin\left(3\theta\right)",
-            ]
-        )
-    )
-
-    # print(plotter.Y())
-
-
-if __name__ == "__main__":
-    test()
+        Returns
+        -------
+            See overlayStrMatrices above
+        """
+        strMatrix = self.polarPointsToStrMatrix(positions, character)
+        if drawAxes:
+            strMatrix = self.overlayStrMatrices([self.polarAxes(), strMatrix])
+        return self.strMatrixToStr(strMatrix)
