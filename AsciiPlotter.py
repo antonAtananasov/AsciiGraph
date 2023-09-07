@@ -36,48 +36,48 @@ def split(txt: str, seps: [str]) -> [str]:
 
 
 class ConsoleColors:  # the available console colors to use for coloring the string matrices
-    END = "\33[0m"
-    BOLD = "\33[1m"
-    ITALIC = "\33[3m"
-    URL = "\33[4m"
-    BLINK = "\33[5m"
-    BLINK2 = "\33[6m"
-    SELECTED = "\33[7m"
-    BLACK = "\33[30m"
-    RED = "\33[31m"
-    GREEN = "\33[32m"
-    YELLOW = "\33[33m"
-    BLUE = "\33[34m"
-    VIOLET = "\33[35m"
-    BEIGE = "\33[36m"
-    WHITE = "\33[37m"
-    GREY = "\33[90m"
+    END = b"\33[0m"
+    BOLD = b"\33[1m"
+    ITALIC = b"\33[3m"
+    URL = b"\33[4m"
+    BLINK = b"\33[5m"
+    BLINK2 = b"\33[6m"
+    SELECTED = b"\33[7m"
+    BLACK = b"\33[30m"
+    RED = b"\33[31m"
+    GREEN = b"\33[32m"
+    YELLOW = b"\33[33m"
+    BLUE = b"\33[34m"
+    VIOLET = b"\33[35m"
+    BEIGE = b"\33[36m"
+    WHITE = b"\33[37m"
+    GREY = b"\33[90m"
 
-    RED2 = "\33[91m"
-    GREEN2 = "\33[92m"
-    YELLOW2 = "\33[93m"
-    BLUE2 = "\33[94m"
-    VIOLET2 = "\33[95m"
-    BEIGE2 = "\33[96m"
-    WHITE2 = "\33[97m"
+    RED2 = b"\33[91m"
+    GREEN2 = b"\33[92m"
+    YELLOW2 = b"\33[93m"
+    BLUE2 = b"\33[94m"
+    VIOLET2 = b"\33[95m"
+    BEIGE2 = b"\33[96m"
+    WHITE2 = b"\33[97m"
 
-    BLACKBG = "\33[40m"
-    REDBG = "\33[41m"
-    GREENBG = "\33[42m"
-    YELLOWBG = "\33[43m"
-    BLUEBG = "\33[44m"
-    VIOLETBG = "\33[45m"
-    BEIGEBG = "\33[46m"
-    WHITEBG = "\33[47m"
-    GREYBG = "\33[100m"
+    BLACKBG = b"\33[40m"
+    REDBG = b"\33[41m"
+    GREENBG = b"\33[42m"
+    YELLOWBG = b"\33[43m"
+    BLUEBG = b"\33[44m"
+    VIOLETBG = b"\33[45m"
+    BEIGEBG = b"\33[46m"
+    WHITEBG = b"\33[47m"
+    GREYBG = b"\33[100m"
 
-    REDBG2 = "\33[101m"
-    GREENBG2 = "\33[102m"
-    YELLOWBG2 = "\33[103m"
-    BLUEBG2 = "\33[104m"
-    VIOLETBG2 = "\33[105m"
-    BEIGEBG2 = "\33[106m"
-    WHITEBG2 = "\33[107m"
+    REDBG2 = b"\33[101m"
+    GREENBG2 = b"\33[102m"
+    YELLOWBG2 = b"\33[103m"
+    BLUEBG2 = b"\33[104m"
+    VIOLETBG2 = b"\33[105m"
+    BEIGEBG2 = b"\33[106m"
+    WHITEBG2 = b"\33[107m"
 
 
 np.seterr(divide="ignore")  # remove div by zero because polar plots
@@ -204,10 +204,14 @@ class AsciiPlotter:
             "e": np.e,
             "pi": np.pi,
         }  # the list of available mathematical operations, constants, etc.
-        self.functions.update({"x": self.X()})
-        self.functions.update({"y": self.Y()})
-        self.functions.update({"r": self.Radius()})
-        self.functions.update({"t": self.Theta()})
+        self.x = self.X()
+        self.y = self.Y()
+        self.r = self.Radius()
+        self.t = self.Theta()
+        self.functions.update({"x": self.x})
+        self.functions.update({"y": self.y})
+        self.functions.update({"r": self.r})
+        self.functions.update({"t": self.t})
         self.marchingSqMask = (
             {  # used for bitwise operations with charsetMode (see below)
                 np.array2string(np.bool_([[1, 1], [1, 1]])): 0b0000000000000001,
@@ -229,22 +233,22 @@ class AsciiPlotter:
             }
         )
         self.charset = [  # the characters used to represent different marching square states as a block of text in the console
-            "+",
-            "\\",
-            "/",
-            "-",
-            "\\",
-            "\\",
-            "|",
-            "/",
-            "/",
-            "|",
-            "/",
-            "\\",
-            "-",
-            "/",
-            "\\",
-            ":",
+            b"+",
+            b"\\",
+            b"/",
+            b"-",
+            b"\\",
+            b"\\",
+            b"|",
+            b"/",
+            b"/",
+            b"|",
+            b"/",
+            b"\\",
+            b"-",
+            b"/",
+            b"\\",
+            b":",
         ]
         self.charsetMode = {  # different modes select relevant marching squares and replace them with a symbol from the charset having the same index as the multiplexed value of the square frommarchingSqMask
             "<=": 0b1111111111111110,
@@ -263,7 +267,7 @@ class AsciiPlotter:
 
     def newCanvasMatrix(
         self, canvasSize: (int, int) = (-1, -1), character: str = " "
-    ) -> np.ndarray:
+    ) -> np.string_:
         """
         Description
         -----------
@@ -288,8 +292,8 @@ class AsciiPlotter:
         if canvasSize[1] <= 0:
             canvasSize[1] = self.canvasSize[1]
 
-        canvasMatrix = np.zeros((canvasSize[1], canvasSize[0]), dtype=np.dtype("U13"))
-        canvasMatrix[canvasMatrix == ""] = character
+        canvasMatrix = np.zeros((canvasSize[1], canvasSize[0]), dtype=np.dtype("<S13"))
+        canvasMatrix[canvasMatrix == b""] = character
         return canvasMatrix
 
     def strToExpr(self, s: str) -> str:
@@ -445,9 +449,9 @@ class AsciiPlotter:
         strMatrix: np.ndarray
             See cartesianEqsToStrMatrix above
         """
-        canvasRows = ["".join(char) for char in strMatrix]
-        outputCanvas = "\n".join(canvasRows)
-        return outputCanvas
+        canvasRows = [b"".join(char) for char in strMatrix]
+        outputCanvas = b"\n".join(canvasRows)
+        return outputCanvas.decode()
 
     def overlayStrMatrices(
         self,
@@ -488,7 +492,7 @@ class AsciiPlotter:
 
             for i in np.arange(self.canvasSize[1]):
                 for j in np.arange(self.canvasSize[0]):
-                    if decolorizedStrMatrix2[i][j] == " ":
+                    if decolorizedStrMatrix2[i][j] == b" ":
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
                         if intersect != None:
@@ -531,7 +535,7 @@ class AsciiPlotter:
                 if booleanMask[i][j]:
                     newStrMatrix[i][j] = strMatrix[i][j]
                 else:
-                    newStrMatrix[i][j] = " "
+                    newStrMatrix[i][j] = b" "
         return newStrMatrix
 
     def compileCartesianEquation(self, eq: str) -> str:
@@ -692,7 +696,7 @@ class AsciiPlotter:
         yAxis = self.coordLine(self.canvasSize[1], self.bounds[1])[::-1]
         for i in np.arange(len(positions)):
             pos = positions[i]
-            char = characters[i % len(characters)]
+            char = str.encode(characters[i % len(characters)])
             color = colors[i % len(colors)]
             if not (pos[0] >= xAxis[0] and pos[0] <= xAxis[-1]) or not (
                 pos[1] <= yAxis[0] and pos[1] >= yAxis[-1]
