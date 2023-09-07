@@ -892,10 +892,15 @@ class AsciiPlotter:
         return self.strMatrixToStr(strMatrix)
 
     def decolorizeStrMatrix(self, strMatrix):
+        strMatrix = np.array(
+            [[chr(val[-5 % len(val)]) for val in row] for row in strMatrix],
+            dtype=np.dtype("<S11"),
+        )
+        return strMatrix
         for c in self.colorCodes:
             hasColor = np.char.find(strMatrix, c).max() > -1
             if hasColor:
-                strMatrix = np.char.replace(strMatrix, c, "")
+                strMatrix = np.char.replace(strMatrix, c, b"")
         return strMatrix
 
     def colorizeStrMatrix(self, strMatrix: np.ndarray, color: str) -> np.ndarray:
