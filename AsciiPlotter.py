@@ -214,24 +214,25 @@ class AsciiPlotter:
         self.functions.update({"t": self.t})
         self.marchingSqMask = (
             {  # used for bitwise operations with charsetMode (see below)
-                np.array2string(np.bool_([[1, 1], [1, 1]])): 0b0000000000000001,
-                np.array2string(np.bool_([[1, 1], [0, 1]])): 0b0000000000000010,
-                np.array2string(np.bool_([[1, 1], [1, 0]])): 0b0000000000000100,
-                np.array2string(np.bool_([[1, 1], [0, 0]])): 0b0000000000001000,
-                np.array2string(np.bool_([[1, 0], [1, 1]])): 0b0000000000010000,
-                np.array2string(np.bool_([[1, 0], [0, 1]])): 0b0000000000100000,
-                np.array2string(np.bool_([[1, 0], [1, 0]])): 0b0000000001000000,
-                np.array2string(np.bool_([[1, 0], [0, 0]])): 0b0000000010000000,
-                np.array2string(np.bool_([[0, 1], [1, 1]])): 0b0000000100000000,
-                np.array2string(np.bool_([[0, 1], [0, 1]])): 0b0000001000000000,
-                np.array2string(np.bool_([[0, 1], [1, 0]])): 0b0000010000000000,
-                np.array2string(np.bool_([[0, 1], [0, 0]])): 0b0000100000000000,
-                np.array2string(np.bool_([[0, 0], [1, 1]])): 0b0001000000000000,
-                np.array2string(np.bool_([[0, 0], [0, 1]])): 0b0010000000000000,
-                np.array2string(np.bool_([[0, 0], [1, 0]])): 0b0100000000000000,
-                np.array2string(np.bool_([[0, 0], [0, 0]])): 0b1000000000000000,
+                np.bool_([[1, 1], [1, 1]]).tobytes(): 0b0000000000000001,
+                np.bool_([[1, 1], [0, 1]]).tobytes(): 0b0000000000000010,
+                np.bool_([[1, 1], [1, 0]]).tobytes(): 0b0000000000000100,
+                np.bool_([[1, 1], [0, 0]]).tobytes(): 0b0000000000001000,
+                np.bool_([[1, 0], [1, 1]]).tobytes(): 0b0000000000010000,
+                np.bool_([[1, 0], [0, 1]]).tobytes(): 0b0000000000100000,
+                np.bool_([[1, 0], [1, 0]]).tobytes(): 0b0000000001000000,
+                np.bool_([[1, 0], [0, 0]]).tobytes(): 0b0000000010000000,
+                np.bool_([[0, 1], [1, 1]]).tobytes(): 0b0000000100000000,
+                np.bool_([[0, 1], [0, 1]]).tobytes(): 0b0000001000000000,
+                np.bool_([[0, 1], [1, 0]]).tobytes(): 0b0000010000000000,
+                np.bool_([[0, 1], [0, 0]]).tobytes(): 0b0000100000000000,
+                np.bool_([[0, 0], [1, 1]]).tobytes(): 0b0001000000000000,
+                np.bool_([[0, 0], [0, 1]]).tobytes(): 0b0010000000000000,
+                np.bool_([[0, 0], [1, 0]]).tobytes(): 0b0100000000000000,
+                np.bool_([[0, 0], [0, 0]]).tobytes(): 0b1000000000000000,
             }
         )
+        self.tmp = np.array2string(np.bool_([[0, 0], [0, 0]]))
         self.charset = [  # the characters used to represent different marching square states as a block of text in the console
             b"+",
             b"\\",
@@ -391,7 +392,7 @@ class AsciiPlotter:
         for i in np.arange(len(plane) - 1):
             for j in np.arange(len(plane[0]) - 1):
                 square = plane[i : i + 2, j : j + 2]
-                strSquare = np.array2string(square)
+                strSquare = square.tobytes()
                 charCandidate = self.marchingSqMask[strSquare]
                 boolMatrix[i][j] = charCandidate & charsetMask > 0
 
@@ -426,7 +427,7 @@ class AsciiPlotter:
         for i in np.arange(len(plane) - 1):
             for j in np.arange(len(plane[0]) - 1):
                 square = plane[i : i + 2, j : j + 2]
-                strSquare = np.array2string(square)
+                strSquare = square.tobytes()
                 char = " "
                 charCandidate = self.marchingSqMask[strSquare]
                 if charCandidate & charsetMask > 0:
@@ -482,13 +483,13 @@ class AsciiPlotter:
         See cartesianEqsToStrMatrix above
 
         """
-        contourChars = self.charset[1:-1] + [intersect]
         newStrMatrix = self.newCanvasMatrix()
+        decolorizedStrMatrices = [self.decolorizeStrMatrix(m) for m in strMatrices]
         for k in np.arange(len(strMatrices) - 1):
-            strMatrix1, strMatrix2 = strMatrices[k : k + 2]
-            decolorizedStrMatrix1, decolorizedStrMatrix2 = self.decolorizeStrMatrix(
-                strMatrix1
-            ), self.decolorizeStrMatrix(strMatrix2)
+            strMatrix1 = strMatrices[k]
+            strMatrix2 = strMatrices[k + 1]
+            decolorizedStrMatrix1 = decolorizedStrMatrices[k]
+            decolorizedStrMatrix2 = decolorizedStrMatrices[k + 1]
 
             for i in np.arange(self.canvasSize[1]):
                 for j in np.arange(self.canvasSize[0]):
@@ -496,6 +497,7 @@ class AsciiPlotter:
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
                         if intersect != None:
+                            contourChars = self.charset[1:-1] + [intersect]
                             if decolorizedStrMatrix1[i][j] in contourChars:
                                 if decolorizedStrMatrix2[i][j] in contourChars:
                                     newStrMatrix[i][j] = intersect
@@ -560,9 +562,9 @@ class AsciiPlotter:
         xAxis = self.compileCartesianEquation("y=0")[0]
         yAxis = self.compileCartesianEquation("x=0")[0]
         arrows = {
-            "<": (np.real(self.X())[0][0], 0),
+            "<": (np.real(self.X()[0][0]), 0),
             ">": (self.bounds[0][1], 0),
-            "v": (0, np.real(self.Y())[-1][0]),
+            "v": (0, np.real(self.Y()[-1][0])),
             "^": (0, self.bounds[1][1]),
         }
         arrowsMatrix = self.newCanvasMatrix()
