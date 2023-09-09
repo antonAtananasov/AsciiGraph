@@ -14,6 +14,7 @@ symbols = {
     r"\\cdot": "*",
     r"\\times": "*",
     r"\\div": "/",
+    r"\\radius": "r",
     r"\\theta": "t",
     " ": "",
     "{": "(",
@@ -36,6 +37,8 @@ ops = {
     r"\\sqrt": "sqrt",
     r"\\exp": "exp",
     r"\\abs": "abs",
+    r"\\rad": "rad",
+    r"\\deg": "deg",
 }
 ops2 = {}
 for k, v in ops.items():
