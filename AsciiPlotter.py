@@ -496,10 +496,15 @@ class AsciiPlotter:
                     if decolorizedStrMatrix2[i][j] == b" ":
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
-                        if intersect != None:
-                            contourChars = self.charset[1:-1] + [intersect]
+                        if intersect != None or contourOnTop:
+                            contourChars = self.charset[1:-1] + (
+                                [intersect] if intersect != None else []
+                            )
                             if decolorizedStrMatrix1[i][j] in contourChars:
-                                if decolorizedStrMatrix2[i][j] in contourChars:
+                                if (
+                                    decolorizedStrMatrix2[i][j] in contourChars
+                                    and intersect != None
+                                ):
                                     newStrMatrix[i][j] = intersect
                                 else:
                                     newStrMatrix[i][j] = (
@@ -789,22 +794,23 @@ class AsciiPlotter:
         -------
         See overlayStrMatrices above
         """
-
-        strMatrix = self.overlayStrMatrices(
-            [
-                self.polarAxes(axesRadii),
-                self.cartesianEqsToStrMatrix(
-                    eqs=eqs,
-                    drawAxes=False,
-                    system=system,
-                    intersect=intersect,
-                    contourOnTop=contourOnTop,
-                    colors=colors,
-                ),
-            ],
-            contourOnTop=False,
-            intersect=None,
+        strMatrix = self.cartesianEqsToStrMatrix(
+            eqs=eqs,
+            drawAxes=False,
+            system=system,
+            intersect=intersect,
+            contourOnTop=contourOnTop,
+            colors=colors,
         )
+        if drawAxes:
+            strMatrix = self.overlayStrMatrices(
+                [
+                    self.polarAxes(axesRadii),
+                    strMatrix,
+                ],
+                contourOnTop=False,
+                intersect=None,
+            )
 
         return strMatrix
 
