@@ -1,9 +1,98 @@
 from AsciiPlotter import *
+import sys
 
 SCALE = 1  # reduce this to change resolution fast
 NATIVE_RESOLUTION = (231, 115)
 
 # =========================================
+
+DEFAULT_BOUNDS = ((-12, 12), (-12, 12))
+DEFAULT_CANVAS_SIZE = (19, 9)
+
+PLOT_TYPES = ["cartesian", "polar"]
+
+HELP_ARGS = {
+    "h": "Help",
+    "b": f"Bounds for the coordinate system. Default: '{DEFAULT_BOUNDS}'. Format: '((min_x, max_x),(min_y, max_y))'",
+    "s": f"Size / Resolution in (rows,columns) in ASCII symbols. Default: {DEFAULT_CANVAS_SIZE}",
+    "t": f"Plot type {{cartesian | polar}}. Default: {PLOT_TYPES[0]}",
+    "e": r"Equation to draw. Supports some LaTeX tegs Examples: y^2+x^2<=10^2, y!=3x+3(3), 3sin(x/3)>=y, r\left(\left(\frac{x}{7}\right)^{2}+\left(\frac{y}{7}\right)^{2}-1\right)^{3}<\left(\frac{x}{7}\right)^{2}\left(\frac{y}{7}\right)^{3}, y-tan(x)",
+}
+PARAM_ARGS = {"b", "s", "t", "e"}  # those args which take in a value
+SIMPLE_ARGS = {"h"}
+
+
+def main():
+    bounds = DEFAULT_BOUNDS
+    canvasSize = DEFAULT_CANVAS_SIZE
+    plotType = PLOT_TYPES[0]
+    equation = ""
+    args = sys.argv
+    for i in range(len(args)):
+        if args[i].startswith("-"):
+            #
+            simpleArgsCount = 0
+            for arg in args[i][1:]:
+                if arg in SIMPLE_ARGS:
+                    simpleArgsCount += 1
+            #
+            for j in range(len(args[i][1:])):
+                option = args[i][1:][j]
+                if option in PARAM_ARGS:
+                    argValue = args[i + j + 1 - simpleArgsCount]
+                    if option == "b":
+                        try:
+                            inputValue = [
+                                float(b)
+                                for b in argValue.replace("(", "")
+                                .replace(")", "")
+                                .replace(" ", "")
+                                .split(",")
+                            ]
+                            boundsX, boundsY = tuple(inputValue[:2]), tuple(
+                                inputValue[2:]
+                            )
+                            bounds = (boundsX, boundsY)
+                        except:
+                            raise ValueError
+                    elif option == "s":
+                        try:
+                            inputValue = [
+                                int(b)
+                                for b in argValue.replace("(", "")
+                                .replace(")", "")
+                                .replace(" ", "")
+                                .split(",")
+                            ]
+                            canvasSize = tuple(inputValue)
+                        except:
+                            raise ValueError
+                    elif option == "t":
+                        try:
+                            for t in PLOT_TYPES:
+                                if argValue in t:
+                                    plotType = t
+                        except:
+                            raise ValueError
+                    elif option == "e":
+                        try:
+                            equation = argValue
+                        except:
+                            raise ValueError
+                elif option in SIMPLE_ARGS:
+                    if option == "h":
+                        print("List of available options:")
+                        for k, v in HELP_ARGS.items():
+                            print("\t", f"-{k}", "\t", v)
+
+    plotter = AsciiPlotter(canvasSize, bounds)
+    if len(equation):
+        if plotType == "cartesian":
+            print(plotter.plotCartesianAsciiEquations([equation]))
+        elif plotType == "polar":
+            print(plotter.plotPolarAsciiEquations([equation]))
+    else:
+        print("There is no given valid equation.")
 
 
 def test(nativeSize: tuple, scale: float) -> None:
@@ -138,9 +227,16 @@ def test(nativeSize: tuple, scale: float) -> None:
 
 
 if __name__ == "__main__":
-    import time
+    try:
+        import time
 
-    start_time = time.time_ns()
-    test(NATIVE_RESOLUTION, SCALE)
+        start_time = time.time_ns()
+        main() if len(sys.argv) > 1 else test(NATIVE_RESOLUTION, SCALE)
 
-    print("Done in", (time.time_ns() - start_time) / 1e9, "s")
+        print("Done in", (time.time_ns() - start_time) / 1e9, "s")
+
+    except Exception as e:
+        if type(e) in [ValueError]:
+            print("You or the programmer did something wrong:", type(e).__name__)
+        else:
+            print("Oops, I did not expect this error. No message, sorry.")
