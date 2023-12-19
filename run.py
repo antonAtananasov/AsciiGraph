@@ -1,6 +1,7 @@
 from AsciiPlotter import *
 
-scale = 1
+SCALE = 3
+REQUIRE_KEY= True
 
 
 def test():
@@ -10,7 +11,7 @@ def test():
     Observe
     """
     plotter = AsciiPlotter(
-        (np.int_(np.array((231, 115)) / scale))
+        (np.int_(np.array((231, 115)) / SCALE))
     )  # ((231, 115))  # (canvasSize=(9, 19))
 
     print(f"ASCII rsolution {plotter.canvasSize[0]}x{plotter.canvasSize[1]}")
@@ -38,6 +39,8 @@ def test():
         color = colors[i % len(colors)]
         print("", tex2py(eq))
         print(plotter.plotCartesianAsciiEquations([eq], colors=[color]))
+        if REQUIRE_KEY:
+            input()
 
     # # overlay===============================================
     # plot = plotter.plotCartesianAsciiEquations(
@@ -58,6 +61,8 @@ def test():
         print("|", tex2py(eq))
     plot = plotter.plotCartesianAsciiEquations(eqs, system=True, colors=colors)
     print(plot)
+    if REQUIRE_KEY:
+        input()
     # cartesian points===============================================
     pts = [
         (0, 0),
@@ -73,6 +78,9 @@ def test():
     for i in range(len(pts)):
         print(":", f"{chars[i]}{pts[i]}")
     print(plotter.plotCartesianAsciiPoints(pts, chars, colors=colors))
+    if REQUIRE_KEY:
+        input()
+    print()
 
     # polar=================================================
     eqs = [
@@ -91,39 +99,40 @@ def test():
         eqs,
         colors=[
             plotter.colors.RED,
-            # plotter.colors.RED,
-            # plotter.colors.RED,
-            # plotter.colors.RED,
-            # plotter.colors.RED,
-            # plotter.colors.RED,
+            plotter.colors.RED,
+            plotter.colors.RED,
+            plotter.colors.RED,
+            plotter.colors.RED,
+            plotter.colors.RED,
             plotter.colors.BLUE,
-            plotter.colors.YELLOW,
-            plotter.colors.GREEN,
-            plotter.colors.BEIGE,
-            plotter.colors.GREEN2,
+            # plotter.colors.YELLOW,
+            # plotter.colors.GREEN,
+            # plotter.colors.BEIGE,
+            # plotter.colors.GREEN2,
         ],
     )
     print(polarPlot)
+    if REQUIRE_KEY:
+        input()
+
     eqs = ["r<=6", "t>rad(30)", "t<2pi-rad(30)"]
     for i in range(len(eqs)):
         eq = eqs[i]
         print("|", tex2py(eq))
     polarPlot = plotter.plotPolarAsciiEquations(eqs, system=True, contourOnTop=True)
     print(polarPlot)
+    if REQUIRE_KEY:
+        input()
     # polar=================================================
     pts = [(2, 30), (4, 150), (10, -150)]
     for pt in pts:
         print(";", pt)
     print(plotter.plotPolarAsciiPoints(pts, colors=colors))
+    if REQUIRE_KEY:
+        input()
+    print()
 
-
-if __name__ == "__main__":
-    import time
-
-    start_time = time.time_ns()
-    test()
-
-    plotter = AsciiPlotter((np.int_(np.array((231, 115)) / scale)), ((-7, 7), (-7, 7)))
+    plotter = AsciiPlotter((np.int_(np.array((231, 115)) / SCALE)), ((-7, 7), (-7, 7)))
     eqs = [
         r"((x/7)^2*sqrt(abs(abs(x)-3)/(abs(x)-3))+(y/3)^2*sqrt(abs(y+3/7*sqrt(33))/(y+3/7*sqrt(33)))-1)=0",
         r"(abs(x/2)-((3*sqrt(33)-7)/112)*x^2-3+sqrt(1-(abs(abs(x)-2)-1)^2)-y)=0",
@@ -136,4 +145,14 @@ if __name__ == "__main__":
         print(":", eqs[i])
 
     print(plotter.plotCartesianAsciiEquations(eqs, intersect=None))
+    if REQUIRE_KEY:
+        input()
+
+if __name__ == "__main__":
+    import time
+
+    start_time = time.time_ns()
+
+    test()
+    
     print("Done in", (time.time_ns() - start_time) / 1e9, "s")
