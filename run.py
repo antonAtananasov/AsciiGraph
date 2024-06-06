@@ -1,7 +1,7 @@
 from AsciiPlotter import *
 
 SCALE = 3
-REQUIRE_KEY= True
+REQUIRE_KEY = True
 
 
 def test():
@@ -23,7 +23,7 @@ def test():
         "y!=3x+3(3)",
         "3sin(x/3)>=y",
         r"\left(\left(\frac{x}{7}\right)^{2}+\left(\frac{y}{7}\right)^{2}-1\right)^{3}<\left(\frac{x}{7}\right)^{2}\left(\frac{y}{7}\right)^{3}",
-        "y-tan(x)"
+        "y-tan(x)",
         # r"y=x^x",
     ]
     colors = [
@@ -148,11 +148,12 @@ def test():
     if REQUIRE_KEY:
         input()
 
+
 if __name__ == "__main__":
     import time
 
     start_time = time.time_ns()
 
     test()
-    
+
     print("Done in", (time.time_ns() - start_time) / 1e9, "s")

@@ -157,12 +157,19 @@ class AsciiPlotter:
         canvasSize: (int, int)
             The number of (columns, lines) of the working space.
             It governs the size of the numpy arrays for the calculations
-            and the output arrays and strings from functions.
+            and the output arrays and strings from functions. Floors to closest odd pair to avoid visual mismatch.
         bounds: ((float, float), (float, float))
             Governs the extent of the coordinate plane used for the calculations.
             format: ((min_x, max_x),(min_y, max_y))
         """
+        _canvasSize = np.array(canvasSize)
+        if _canvasSize[0] % 2 == 0:
+            _canvasSize[0] -= 1
+        if _canvasSize[1] % 2 == 0:
+            _canvasSize[1] -= 1
+        canvasSize = tuple(_canvasSize)
         self.canvasSize = canvasSize
+
         self.bounds = bounds
         self.functions = self.globals = {
             "sin": np.sin,
@@ -496,10 +503,15 @@ class AsciiPlotter:
                     if decolorizedStrMatrix2[i][j] == b" ":
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
-                        if intersect != None:
-                            contourChars = self.charset[1:-1] + [intersect]
+                        if intersect != None or contourOnTop:
+                            contourChars = self.charset[1:-1] + (
+                                [intersect] if intersect != None else []
+                            )
                             if decolorizedStrMatrix1[i][j] in contourChars:
-                                if decolorizedStrMatrix2[i][j] in contourChars:
+                                if (
+                                    decolorizedStrMatrix2[i][j] in contourChars
+                                    and intersect != None
+                                ):
                                     newStrMatrix[i][j] = intersect
                                 else:
                                     newStrMatrix[i][j] = (
@@ -562,9 +574,9 @@ class AsciiPlotter:
         xAxis = self.compileCartesianEquation("y=0")[0]
         yAxis = self.compileCartesianEquation("x=0")[0]
         arrows = {
-            "<": (np.real(self.X()[0][0]), 0),
+            "<": (self.bounds[0][0], 0),
             ">": (self.bounds[0][1], 0),
-            "v": (0, np.real(self.Y()[-1][0])),
+            "v": (0, self.bounds[1][0]),
             "^": (0, self.bounds[1][1]),
         }
         arrowsMatrix = self.newCanvasMatrix()
@@ -705,7 +717,7 @@ class AsciiPlotter:
             ):
                 continue
             xDistance = np.abs(np.real(xAxis) - pos[0])
-            xIndex = np.where(xDistance == xDistance.min())[0][0]
+            xIndex = np.where(xDistance == xDistance.min())[0][-1]
             yDistance = np.abs(np.real(yAxis) - pos[1])
             yIndex = np.where(yDistance == yDistance.min())[0][-1]
 
@@ -762,6 +774,7 @@ class AsciiPlotter:
         contourOnTop=False,
         axesRadii=(0.75,),
         colors: [str] = [None],
+        bounds: [(float, float)] = [(-np.pi, np.pi)],
     ) -> np.ndarray:
         """
         Description
@@ -789,22 +802,23 @@ class AsciiPlotter:
         -------
         See overlayStrMatrices above
         """
-
-        strMatrix = self.overlayStrMatrices(
-            [
-                self.polarAxes(axesRadii),
-                self.cartesianEqsToStrMatrix(
-                    eqs=eqs,
-                    drawAxes=False,
-                    system=system,
-                    intersect=intersect,
-                    contourOnTop=contourOnTop,
-                    colors=colors,
-                ),
-            ],
-            contourOnTop=False,
-            intersect=None,
+        strMatrix = self.cartesianEqsToStrMatrix(
+            eqs=eqs,
+            drawAxes=False,
+            system=system,
+            intersect=intersect,
+            contourOnTop=contourOnTop,
+            colors=colors,
         )
+        if drawAxes:
+            strMatrix = self.overlayStrMatrices(
+                [
+                    self.polarAxes(axesRadii),
+                    strMatrix,
+                ],
+                contourOnTop=False,
+                intersect=None,
+            )
 
         return strMatrix
 
