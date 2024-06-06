@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from latex2python import tex2py
+from typing import Tuple, List
 
 
 def mux(input: int) -> int:
@@ -21,7 +22,7 @@ def demux(input: int) -> int:
     return int(2**input)
 
 
-def split(txt: str, seps: [str]) -> [str]:
+def split(txt: str, seps: List[str]) -> List[str]:
     """
     Description
     -----------
@@ -85,7 +86,7 @@ np.seterr(invalid="ignore")  # remove div by zero because polar plots
 
 
 class AsciiPlotter:
-    def coordLine(self, size: int, bounds: (float, float)):
+    def coordLine(self, size: int, bounds: Tuple[float, float]):
         """
         Description
         -----------
@@ -97,7 +98,7 @@ class AsciiPlotter:
         """
         return np.complex128(np.linspace(bounds[0], bounds[1], size))
 
-    def coordLineTile(self, size: (int, int), bounds: (float, float)):
+    def coordLineTile(self, size: Tuple[int, int], bounds: Tuple[float, float]):
         """
         Description
         -----------
@@ -148,28 +149,24 @@ class AsciiPlotter:
 
     def __init__(
         self,
-        canvasSize: (int, int) = (45, 21),
-        bounds: ((float, float), (float, float)) = ((-12, 12), (-12, 12)),
+        canvasSize: Tuple[int, int] = (45, 21),
+        bounds: Tuple[Tuple[float, float], Tuple[float, float]] = (
+            (-12, 12),
+            (-12, 12),
+        ),
     ):
         """
         Parameters
         ----------
-        canvasSize: (int, int)
+        canvasSize: Tuple[int,int]
             The number of (columns, lines) of the working space.
             It governs the size of the numpy arrays for the calculations
-            and the output arrays and strings from functions. Floors to closest odd pair to avoid visual mismatch.
-        bounds: ((float, float), (float, float))
+            and the output arrays and strings from functions.
+        bounds: (Tuple[float, float], Tuple[float, float])
             Governs the extent of the coordinate plane used for the calculations.
             format: ((min_x, max_x),(min_y, max_y))
         """
-        _canvasSize = np.array(canvasSize)
-        if _canvasSize[0] % 2 == 0:
-            _canvasSize[0] -= 1
-        if _canvasSize[1] % 2 == 0:
-            _canvasSize[1] -= 1
-        canvasSize = tuple(_canvasSize)
         self.canvasSize = canvasSize
-
         self.bounds = bounds
         self.functions = self.globals = {
             "sin": np.sin,
@@ -274,7 +271,7 @@ class AsciiPlotter:
         ]
 
     def newCanvasMatrix(
-        self, canvasSize: (int, int) = (-1, -1), character: str = " "
+        self, canvasSize: Tuple[int, int] = (-1, -1), character: str = " "
     ) -> np.string_:
         """
         Description
@@ -284,7 +281,7 @@ class AsciiPlotter:
 
         Parameters
         ----------
-        canvasSize: (int, int)
+        canvasSize: Tuple[int,int]
             *See canvasSize in the class description above*
             Additionally, setting one or both of the integers
             to a negative number defaults it to the class's canvasSize.
@@ -463,7 +460,7 @@ class AsciiPlotter:
 
     def overlayStrMatrices(
         self,
-        strMatrices: [str],
+        strMatrices: List[str],
         contourOnTop: bool = False,
         intersect: str = None,
     ):
@@ -503,15 +500,10 @@ class AsciiPlotter:
                     if decolorizedStrMatrix2[i][j] == b" ":
                         newStrMatrix[i][j] = strMatrix1[i][j]
                     else:
-                        if intersect != None or contourOnTop:
-                            contourChars = self.charset[1:-1] + (
-                                [intersect] if intersect != None else []
-                            )
+                        if intersect != None:
+                            contourChars = self.charset[1:-1] + [intersect]
                             if decolorizedStrMatrix1[i][j] in contourChars:
-                                if (
-                                    decolorizedStrMatrix2[i][j] in contourChars
-                                    and intersect != None
-                                ):
+                                if decolorizedStrMatrix2[i][j] in contourChars:
                                     newStrMatrix[i][j] = intersect
                                 else:
                                     newStrMatrix[i][j] = (
@@ -574,9 +566,9 @@ class AsciiPlotter:
         xAxis = self.compileCartesianEquation("y=0")[0]
         yAxis = self.compileCartesianEquation("x=0")[0]
         arrows = {
-            "<": (self.bounds[0][0], 0),
+            "<": (np.real(self.X()[0][0]), 0),
             ">": (self.bounds[0][1], 0),
-            "v": (0, self.bounds[1][0]),
+            "v": (0, np.real(self.Y()[-1][0])),
             "^": (0, self.bounds[1][1]),
         }
         arrowsMatrix = self.newCanvasMatrix()
@@ -598,12 +590,12 @@ class AsciiPlotter:
 
     def cartesianEqsToStrMatrix(
         self,
-        eqs: [str],
+        eqs: List[str],
         drawAxes: bool = True,
         system: bool = False,
         intersect: str = "x",
         contourOnTop=True,
-        colors: [str] = [None],
+        colors: List[str] = [None],
     ) -> np.ndarray:
         """
         Description
@@ -612,7 +604,7 @@ class AsciiPlotter:
 
         Parameters
         ----------
-        eqs: [str]
+        eqs: List[str]
             A list of text or LaTeX equations to be drawn on one coordinate plane
         drawAxes: bool = True
             Whether coordinate axes y and x should be drawn behind the equations
@@ -659,7 +651,7 @@ class AsciiPlotter:
 
     def plotCartesianAsciiEquations(
         self,
-        eqs: [str],
+        eqs: List[str],
         drawAxes: bool = True,
         system: bool = False,
         intersect: str = "x",
@@ -684,7 +676,10 @@ class AsciiPlotter:
         return plot
 
     def cartesianPointsToStrMatrix(
-        self, positions: [(int, int)], characters: [str] = ["o"], colors: [str] = [None]
+        self,
+        positions: List[Tuple[int, int]],
+        characters: List[str] = ["o"],
+        colors: List[str] = [None],
     ):
         """
         Description
@@ -695,7 +690,7 @@ class AsciiPlotter:
         ----------
         positions: [(int,int)]
             The a list of the (x, y) tuples defining the positions of the points.
-        characters: [str]
+        characters: List[str]
             The characters to be assigned to the corresponding position in the strMatrix. If len(characters) is smaller than len(positions), the chars start repeating from the start
         colors: str = None
             The array of colors in which the graphs of the equations is drawn in the
@@ -717,7 +712,7 @@ class AsciiPlotter:
             ):
                 continue
             xDistance = np.abs(np.real(xAxis) - pos[0])
-            xIndex = np.where(xDistance == xDistance.min())[0][-1]
+            xIndex = np.where(xDistance == xDistance.min())[0][0]
             yDistance = np.abs(np.real(yAxis) - pos[1])
             yIndex = np.where(yDistance == yDistance.min())[0][-1]
 
@@ -730,10 +725,10 @@ class AsciiPlotter:
 
     def plotCartesianAsciiPoints(
         self,
-        positions: [(int, int)],
+        positions: List[Tuple[int, int]],
         character: str = "o",
         drawAxes: bool = True,
-        colors: [str] = [None],
+        colors: List[str] = [None],
     ):
         """
         Description
@@ -749,7 +744,7 @@ class AsciiPlotter:
             strMatrix = self.overlayStrMatrices([self.cartesianAxes(), strMatrix])
         return self.strMatrixToStr(strMatrix)
 
-    def polarAxes(self, radii: (float) = (0.75,), color=None):
+    def polarAxes(self, radii: float = (0.75,), color=None):
         if color == None:
             color = self.colors.GREY
         minBound = min(
@@ -767,14 +762,13 @@ class AsciiPlotter:
 
     def polarEqsToStrMatrix(
         self,
-        eqs: [str],
+        eqs: List[str],
         drawAxes: bool = True,
         system: bool = False,
         intersect: str = None,
         contourOnTop=False,
         axesRadii=(0.75,),
-        colors: [str] = [None],
-        bounds: [(float, float)] = [(-np.pi, np.pi)],
+        colors: List[str] = [None],
     ) -> np.ndarray:
         """
         Description
@@ -783,7 +777,7 @@ class AsciiPlotter:
 
         Parameters
         ----------
-        eqs: [str]
+        eqs: List[str]
             A list of text or LaTeX equations to be drawn on one polar coordinate plane
         drawAxes: bool = True
             Whether coordinate axes y and x and a circle at different radii should be drawn behind the equations
@@ -802,35 +796,34 @@ class AsciiPlotter:
         -------
         See overlayStrMatrices above
         """
-        strMatrix = self.cartesianEqsToStrMatrix(
-            eqs=eqs,
-            drawAxes=False,
-            system=system,
-            intersect=intersect,
-            contourOnTop=contourOnTop,
-            colors=colors,
+
+        strMatrix = self.overlayStrMatrices(
+            [
+                self.polarAxes(axesRadii),
+                self.cartesianEqsToStrMatrix(
+                    eqs=eqs,
+                    drawAxes=False,
+                    system=system,
+                    intersect=intersect,
+                    contourOnTop=contourOnTop,
+                    colors=colors,
+                ),
+            ],
+            contourOnTop=False,
+            intersect=None,
         )
-        if drawAxes:
-            strMatrix = self.overlayStrMatrices(
-                [
-                    self.polarAxes(axesRadii),
-                    strMatrix,
-                ],
-                contourOnTop=False,
-                intersect=None,
-            )
 
         return strMatrix
 
     def plotPolarAsciiEquations(
         self,
-        eqs: [str],
+        eqs: List[str],
         drawAxes: bool = True,
         system: bool = False,
         intersect: str = None,
         contourOnTop=True,
         axesRadii=(0.75,),
-        colors: [str] = [None],
+        colors: List[str] = [None],
     ) -> str:
         """
         Description
@@ -855,7 +848,10 @@ class AsciiPlotter:
         return plot
 
     def polarPointsToStrMatrix(
-        self, positions: [(int, int)], characters: [str] = ["o"], colors: [str] = [None]
+        self,
+        positions: List[Tuple[int, int]],
+        characters: List[str] = ["o"],
+        colors: List[str] = [None],
     ):
         """
         Description
@@ -867,7 +863,7 @@ class AsciiPlotter:
         positions: [(int,int)]
             The a list of the (radius, theta) tuples defining the positions of the points.
             The angle is used in degrees.
-        characters: [str]
+        characters: List[str]
             The characters to be assigned to the corresponding position in the strMatrix.
             If len(characters) is smaller than len(positions), the chars start repeating from the start
 
@@ -888,10 +884,10 @@ class AsciiPlotter:
 
     def plotPolarAsciiPoints(
         self,
-        positions: [(int, int)],
+        positions: List[Tuple[int, int]],
         character: str = "o",
         drawAxes: bool = True,
-        colors: [str] = [None],
+        colors: List[str] = [None],
     ):
         """
         Description

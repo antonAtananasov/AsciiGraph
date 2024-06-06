@@ -1,7 +1,8 @@
 from AsciiPlotter import *
 
-SCALE = 3
+SCALE = 2
 REQUIRE_KEY = True
+NATIVE_RESOLUTION = (229, 115)
 
 
 def test():
@@ -11,7 +12,7 @@ def test():
     Observe
     """
     plotter = AsciiPlotter(
-        (np.int_(np.array((231, 115)) / SCALE))
+        (np.int_(np.array(NATIVE_RESOLUTION) / SCALE))
     )  # ((231, 115))  # (canvasSize=(9, 19))
 
     print(f"ASCII rsolution {plotter.canvasSize[0]}x{plotter.canvasSize[1]}")
